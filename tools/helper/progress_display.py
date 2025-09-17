@@ -75,9 +75,9 @@ class ProgressDisplay:
             status_line += f"| PKG: {self.current_pkg} "
 
         status_line += (
-            f"| File: {current_file} "
             f"| Elapsed: {elapsed_str} "
-            f"| ETA: {remaining_str}"
+            f"| ETA: {remaining_str} "
+            f"| File: {current_file}"
         )
 
         # Get terminal width for proper clearing
