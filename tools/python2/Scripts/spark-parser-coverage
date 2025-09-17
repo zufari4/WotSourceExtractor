@@ -1,0 +1,83 @@
+#!d:\WotrecMod\python_2.7\python.exe
+#  Copyright (c) 2022, 2024 Rocky Bernstein
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
+Print grammar reduce statistics for a series of spark-parser parses
+"""
+
+import getopt
+import os
+import pickle
+import sys
+
+from spark_parser.version import __version__
+
+
+def sort_profile_info(path, max_count=1000):
+    profile_info = pickle.load(open(path, "rb"))
+    items = sorted(profile_info.items(), key=lambda kv: kv[1], reverse=False)
+    return [item for item in items if item[1] <= max_count]
+
+
+program, ext = os.path.splitext(os.path.basename(__file__))
+
+DEFAULT_COVERAGE_FILE = "/tmp/spark-grammar.cover"
+DEFAULT_COUNT = 100
+
+
+def run():
+    Usage_short = (
+        """usage: %s --path coverage-file...
+Type -h for for full help."""
+        % program
+    )
+
+    try:
+        opts, files = getopt.getopt(
+            sys.argv[1:], "hVp:m:", ["help", "version", "path=", "max-count="]
+        )
+    except getopt.GetoptError(e):
+        sys.stderr.write("%s: %s\n" % (os.path.basename(sys.argv[0]), e))
+        sys.exit(-1)
+
+    max_count = DEFAULT_COUNT
+    path = DEFAULT_COVERAGE_FILE
+    for opt, val in opts:
+        if opt in ("-h", "--help"):
+            print(__doc__)
+            sys.exit(1)
+        elif opt in ("-V", "--version"):
+            print("%s %s" % (program, __version__))
+            sys.exit(0)
+        elif opt in ("-p", "--path"):
+            path = val
+        elif opt in ("-m", "--max_count"):
+            max_count = int(val)
+        else:
+            print(opt)
+            sys.stderr.write(Usage_short)
+            sys.exit(1)
+
+    """Print grammar reduce statistics for a series of spark-parser parses
+    """
+    for rule, count in sort_profile_info(path, max_count):
+        print("%d: %s" % (count, rule))
+        pass
+    return
+
+
+if __name__ == "__main__":
+    run()
