@@ -8,6 +8,8 @@ import argparse
 import sys
 from pathlib import Path
 
+# Add current directory to path for handler import
+sys.path.insert(0, str(Path(__file__).parent))
 from handler import DecompilerHandler
 
 

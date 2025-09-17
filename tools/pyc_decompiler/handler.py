@@ -14,6 +14,8 @@ from typing import List, Tuple
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from helper import ProgressDisplay, SimpleProgress
 
+# Add current directory to path for worker import
+sys.path.insert(0, str(Path(__file__).parent))
 from worker import decompile_worker
 
 
