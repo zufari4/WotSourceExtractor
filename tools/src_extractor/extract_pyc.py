@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 World of Tanks PKG Extractor
-Extracts .pyc files from WoT .pkg files (which are ZIP archives)
+Extracts Python source files (.py and .pyc) from WoT .pkg files (which are ZIP archives)
 """
 
 import argparse
@@ -20,7 +20,7 @@ from pkg_handler import PKGHandler
 def parse_arguments():
     """Parse command line arguments"""
     parser = argparse.ArgumentParser(
-        description='Extract .pyc files from World of Tanks .pkg files'
+        description='Extract Python source files (.py and .pyc) from World of Tanks .pkg files'
     )
     parser.add_argument(
         'game_path',
@@ -30,6 +30,11 @@ def parse_arguments():
         '--verbose', '-v',
         action='store_true',
         help='Enable verbose output'
+    )
+    parser.add_argument(
+        '--pyc-only',
+        action='store_true',
+        help='Extract only .pyc files (default: extract both .py and .pyc)'
     )
     return parser.parse_args()
 
@@ -69,31 +74,47 @@ def main():
     # Initialize handler
     handler = PKGHandler(packages_dir, output_dir, verbose=args.verbose)
 
-    # Find PKG files with pyc content
-    print("\nScanning for PKG files containing .pyc files...")
-    pkg_files = handler.find_pkg_with_pyc()
+    # Find PKG files with Python content
+    if args.pyc_only:
+        print("\nScanning for PKG files containing .pyc files...")
+        pkg_files = handler.find_pkg_with_python(pyc_only=True)
+    else:
+        print("\nScanning for PKG files containing Python files (.py and .pyc)...")
+        pkg_files = handler.find_pkg_with_python(pyc_only=False)
 
     if not pkg_files:
-        print("No PKG files with .pyc content found.")
+        print("No PKG files with Python content found.")
         sys.exit(0)
 
-    print(f"Found {len(pkg_files)} PKG files with .pyc content")
+    print(f"Found {len(pkg_files)} PKG files with Python content")
 
-    # Get full list of pyc files for progress tracking
+    # Get full list of Python files for progress tracking
     print("\nAnalyzing PKG contents...")
-    pyc_files = handler.get_all_pyc_files(pkg_files)
-    total_pyc_count = sum(len(files) for files in pyc_files.values())
-    print(f"Total .pyc files to extract: {total_pyc_count}")
+    python_files = handler.get_all_python_files(pkg_files, pyc_only=args.pyc_only)
+    total_file_count = sum(len(files) for files in python_files.values())
+
+    if args.pyc_only:
+        print(f"Total .pyc files to extract: {total_file_count}")
+    else:
+        # Count by type
+        py_count = sum(len([f for f in files if f.endswith('.py')]) for files in python_files.values())
+        pyc_count = sum(len([f for f in files if f.endswith('.pyc')]) for files in python_files.values())
+        print(f"Total Python files to extract: {total_file_count}")
+        print(f"  - .py files: {py_count}")
+        print(f"  - .pyc files: {pyc_count}")
 
     # Initialize progress display
-    progress = ProgressDisplay(total_pyc_count)
+    progress = ProgressDisplay(total_file_count)
 
-    # Extract pyc files
+    # Extract Python files
     print("\nStarting extraction...")
-    extracted_count = handler.extract_pyc_files(pkg_files, progress)
+    extracted_count = handler.extract_python_files(pkg_files, progress, pyc_only=args.pyc_only)
 
     print(f"\n[DONE] Extraction complete!")
-    print(f"  Extracted {extracted_count} .pyc files to: {output_dir}")
+    if args.pyc_only:
+        print(f"  Extracted {extracted_count} .pyc files to: {output_dir}")
+    else:
+        print(f"  Extracted {extracted_count} Python files to: {output_dir}")
 
 
 if __name__ == '__main__':

@@ -5,7 +5,7 @@ A toolkit for extracting and decompiling Python source code from World of Tanks 
 ## Overview
 
 This project provides tools to:
-1. Extract `.pyc` (compiled Python) files from World of Tanks `.pkg` archives
+1. Extract Python files (`.py` and `.pyc`) from World of Tanks `.pkg` archives
 2. Decompile `.pyc` files back to readable `.py` source code
 
 ## Requirements
@@ -69,16 +69,19 @@ wot_mods/
 
 ### Source Extractor (`tools/src_extractor`)
 
-Extracts `.pyc` files from World of Tanks `.pkg` archives (ZIP format).
+Extracts Python source files from World of Tanks `.pkg` archives (ZIP format).
 
 **Usage:**
 ```bash
-python tools/src_extractor/extract_pyc.py <game_path> [-v]
+python tools/src_extractor/extract_pyc.py <game_path> [options]
 ```
 
 **Options:**
 - `game_path` - Path to World of Tanks installation
 - `-v, --verbose` - Enable verbose output
+- `--pyc-only` - Extract only `.pyc` files (default: extract both `.py` and `.pyc`)
+
+**Note:** World of Tanks packages typically only contain compiled `.pyc` files, not `.py` source files.
 
 ### PYC Decompiler (`tools/pyc_decompiler`)
 

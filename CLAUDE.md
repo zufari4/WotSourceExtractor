@@ -5,7 +5,7 @@ This document contains important information about the World of Tanks Source Ext
 ## Project Overview
 
 This is a toolkit for extracting and decompiling Python source code from World of Tanks. The project consists of two main tools:
-1. **src_extractor** - Extracts .pyc files from .pkg archives
+1. **src_extractor** - Extracts Python files (.py and .pyc) from .pkg archives
 2. **pyc_decompiler** - Decompiles .pyc files to .py source code with multiprocessing support
 
 ## Key Technical Details
@@ -58,7 +58,8 @@ wot_mods/
 extract_wot_sources.bat
 
 # Or manually:
-python tools/src_extractor/extract_pyc.py "D:\Games\Tanki"
+python tools/src_extractor/extract_pyc.py "D:\Games\Tanki"  # Extracts both .py and .pyc
+python tools/src_extractor/extract_pyc.py "D:\Games\Tanki" --pyc-only  # Only .pyc files
 python tools/pyc_decompiler/decompile_pyc.py res -r
 
 # With specific worker count:
@@ -106,6 +107,7 @@ python tools/pyc_decompiler/decompile_pyc.py res/scripts/client/Account.pyc
 ## Performance Expectations
 
 - Extraction: 1-2 minutes for ~9,500 files
+  - World of Tanks packages contain only .pyc files (no .py source)
 - Decompilation: Dramatically improved with multiprocessing
   - Sequential: 30+ minutes (old)
   - Parallel (8 workers): 5-10 minutes (new)

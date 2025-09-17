@@ -1,6 +1,6 @@
 """
 PKG Handler Module
-Handles scanning and extracting .pyc files from World of Tanks .pkg files
+Handles scanning and extracting Python source files (.py and .pyc) from World of Tanks .pkg files
 """
 
 import os
@@ -19,9 +19,9 @@ class PKGHandler:
         self.output_dir = output_dir
         self.verbose = verbose
 
-    def find_pkg_with_pyc(self) -> List[Path]:
-        """Find all PKG files that contain .pyc files"""
-        pkg_files_with_pyc = []
+    def find_pkg_with_python(self, pyc_only: bool = False) -> List[Path]:
+        """Find all PKG files that contain Python files"""
+        pkg_files_with_python = []
 
         # Get all .pkg files
         pkg_files = list(self.packages_dir.glob("*.pkg"))
@@ -33,12 +33,21 @@ class PKGHandler:
             try:
                 # PKG files are ZIP archives
                 with zipfile.ZipFile(pkg_file, 'r') as zf:
-                    # Check if it contains any .pyc files
-                    pyc_files = [f for f in zf.namelist() if f.endswith('.pyc')]
-                    if pyc_files:
-                        pkg_files_with_pyc.append(pkg_file)
+                    # Check if it contains Python files
+                    if pyc_only:
+                        python_files = [f for f in zf.namelist() if f.endswith('.pyc')]
+                    else:
+                        python_files = [f for f in zf.namelist() if f.endswith(('.py', '.pyc'))]
+
+                    if python_files:
+                        pkg_files_with_python.append(pkg_file)
                         if self.verbose:
-                            print(f"  + {pkg_file.name}: {len(pyc_files)} .pyc files")
+                            py_count = len([f for f in python_files if f.endswith('.py')])
+                            pyc_count = len([f for f in python_files if f.endswith('.pyc')])
+                            if pyc_only:
+                                print(f"  + {pkg_file.name}: {pyc_count} .pyc files")
+                            else:
+                                print(f"  + {pkg_file.name}: {py_count} .py, {pyc_count} .pyc files")
             except zipfile.BadZipFile:
                 if self.verbose:
                     print(f"  x {pkg_file.name}: Not a valid ZIP file")
@@ -46,26 +55,37 @@ class PKGHandler:
                 if self.verbose:
                     print(f"  x {pkg_file.name}: Error - {e}")
 
-        return pkg_files_with_pyc
+        return pkg_files_with_python
 
-    def get_all_pyc_files(self, pkg_files: List[Path]) -> Dict[Path, List[str]]:
-        """Get a complete list of all .pyc files in the given PKG files"""
-        pyc_files_map = {}
+    def find_pkg_with_pyc(self) -> List[Path]:
+        """Legacy method - redirects to find_pkg_with_python"""
+        return self.find_pkg_with_python(pyc_only=True)
+
+    def get_all_python_files(self, pkg_files: List[Path], pyc_only: bool = False) -> Dict[Path, List[str]]:
+        """Get a complete list of all Python files in the given PKG files"""
+        python_files_map = {}
 
         for pkg_file in pkg_files:
             try:
                 with zipfile.ZipFile(pkg_file, 'r') as zf:
-                    pyc_files = [f for f in zf.namelist() if f.endswith('.pyc')]
-                    pyc_files_map[pkg_file] = pyc_files
+                    if pyc_only:
+                        python_files = [f for f in zf.namelist() if f.endswith('.pyc')]
+                    else:
+                        python_files = [f for f in zf.namelist() if f.endswith(('.py', '.pyc'))]
+                    python_files_map[pkg_file] = python_files
             except Exception as e:
                 if self.verbose:
                     print(f"Error reading {pkg_file.name}: {e}")
-                pyc_files_map[pkg_file] = []
+                python_files_map[pkg_file] = []
 
-        return pyc_files_map
+        return python_files_map
 
-    def extract_pyc_files(self, pkg_files: List[Path], progress) -> int:
-        """Extract only .pyc files from the PKG files"""
+    def get_all_pyc_files(self, pkg_files: List[Path]) -> Dict[Path, List[str]]:
+        """Legacy method - redirects to get_all_python_files"""
+        return self.get_all_python_files(pkg_files, pyc_only=True)
+
+    def extract_python_files(self, pkg_files: List[Path], progress, pyc_only: bool = False) -> int:
+        """Extract Python files from the PKG files"""
         total_extracted = 0
 
         for pkg_file in pkg_files:
@@ -74,22 +94,25 @@ class PKGHandler:
 
             try:
                 with zipfile.ZipFile(pkg_file, 'r') as zf:
-                    # Get list of .pyc files
-                    pyc_files = [f for f in zf.namelist() if f.endswith('.pyc')]
+                    # Get list of Python files
+                    if pyc_only:
+                        python_files = [f for f in zf.namelist() if f.endswith('.pyc')]
+                    else:
+                        python_files = [f for f in zf.namelist() if f.endswith(('.py', '.pyc'))]
 
-                    for pyc_file in pyc_files:
+                    for python_file in python_files:
                         # For scripts.pkg, extract as-is
                         # For all other packages, skip the first folder (package name)
                         if pkg_name == "scripts":
                             # Keep original path for scripts.pkg
-                            clean_path = pyc_file
+                            clean_path = python_file
                         else:
                             # Skip first folder for other packages
-                            path_parts = pyc_file.replace('\\', '/').split('/')
+                            path_parts = python_file.replace('\\', '/').split('/')
                             if len(path_parts) > 1:
                                 clean_path = '/'.join(path_parts[1:])
                             else:
-                                clean_path = pyc_file
+                                clean_path = python_file
 
                         # Create output path
                         output_path = self.output_dir / clean_path.replace('/', os.sep)
@@ -97,7 +120,7 @@ class PKGHandler:
 
                         # Extract the file
                         try:
-                            with zf.open(pyc_file) as source:
+                            with zf.open(python_file) as source:
                                 with open(output_path, 'wb') as target:
                                     shutil.copyfileobj(source, target)
 
@@ -106,7 +129,7 @@ class PKGHandler:
 
                         except Exception as e:
                             if self.verbose:
-                                print(f"\nError extracting {pyc_file}: {e}")
+                                print(f"\nError extracting {python_file}: {e}")
 
             except Exception as e:
                 if self.verbose:
@@ -114,6 +137,10 @@ class PKGHandler:
 
         progress.finish()
         return total_extracted
+
+    def extract_pyc_files(self, pkg_files: List[Path], progress) -> int:
+        """Legacy method - redirects to extract_python_files"""
+        return self.extract_python_files(pkg_files, progress, pyc_only=True)
 
     def extract_all_then_filter(self, pkg_files: List[Path], progress) -> int:
         """Alternative method: Extract all files then delete non-.pyc files"""
