@@ -11,8 +11,8 @@ This is a toolkit for extracting and decompiling Python source code from World o
 ## Key Technical Details
 
 ### Python Version Requirements
-- **Python 3.x** runs the main scripts
-- **Python 2.7** is REQUIRED for decompilation (located in `tools\python2\`)
+- **Python 3.x** runs the main scripts (must be installed by user)
+- **Python 2.7** is REQUIRED for decompilation (already included in `tools\python2\`)
 - World of Tanks uses Python 2.7 bytecode (magic number: 62211/0xf303)
 
 ### Important Implementation Notes
@@ -22,7 +22,7 @@ This is a toolkit for extracting and decompiling Python source code from World o
    - Use `[DONE]` instead of `✓` for success messages
    - Use `x` instead of `✗` for error messages
 
-2. **Path Handling**: The Python 2.7 executable is located at `tools\python2\python.exe`
+2. **Path Handling**: The Python 2.7 executable is included in the repository at `tools\python2\python.exe`
 
 3. **Cross-Python Communication**: The decompiler uses JSON for communication between Python 3 wrapper and Python 2.7 worker
 
@@ -39,7 +39,7 @@ wot_mods/
 ├── extract_wot_sources.bat    # Main batch script for users
 ├── res/                        # Output directory (created during extraction)
 ├── tools/
-│   ├── python2/               # Python 2.7 installation
+│   ├── python2/               # Python 2.7 (included in repository)
 │   ├── src_extractor/         # Extraction tool
 │   ├── pyc_decompiler/        # Decompilation tool
 │   │   ├── uncompyle6/        # Custom WoT-compatible decompiler

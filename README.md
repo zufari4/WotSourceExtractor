@@ -11,7 +11,7 @@ This project provides tools to:
 ## Requirements
 
 - **Python 3.x** - For running the main tools
-- **Python 2.7** - Required for decompilation (must be placed in `tools\python2\`)
+- **Python 2.7** - Required for decompilation (already included in `tools\python2\`)
 - **World of Tanks** - Game installation to extract files from
 
 ## Quick Start
@@ -114,7 +114,7 @@ python tools/pyc_decompiler/decompile_pyc.py <directory> [options]
 Install Python 3 from https://www.python.org/ and add to PATH.
 
 ### "Python 2.7 not found at tools\python2\python.exe"
-Download Python 2.7 and extract/install to `tools\python2\` directory.
+Python 2.7 should already be included in the repository. If missing, ensure you cloned the complete repository including the `tools\python2\` folder.
 
 ### "Not a valid World of Tanks directory"
 Ensure the path points to the game's root directory containing `res\packages`.
