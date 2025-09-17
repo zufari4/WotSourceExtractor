@@ -14,6 +14,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from helper import ProgressDisplay
 
+# Add current directory to path for pkg_handler
+sys.path.insert(0, str(Path(__file__).parent))
 from pkg_handler import PKGHandler
 
 
