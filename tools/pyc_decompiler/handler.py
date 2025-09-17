@@ -25,8 +25,8 @@ class DecompilerHandler:
 
         # Set number of worker processes
         if num_workers is None:
-            # Default: CPU cores - 2 (minimum 1)
-            self.num_workers = max(1, multiprocessing.cpu_count() - 2)
+            # Default: Use all CPU cores
+            self.num_workers = multiprocessing.cpu_count()
         else:
             self.num_workers = max(1, num_workers)
 

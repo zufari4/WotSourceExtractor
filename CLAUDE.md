@@ -28,7 +28,7 @@ This is a toolkit for extracting and decompiling Python source code from World o
 
 4. **Multiprocessing**:
    - Uses ProcessPoolExecutor for parallel decompilation
-   - Default workers: CPU cores - 2 (minimum 1)
+   - Default workers: All CPU cores for maximum performance
    - Absolute paths required in worker functions for Windows compatibility
    - Significant speed improvement over sequential processing
 

@@ -43,7 +43,7 @@ def parse_arguments():
     parser.add_argument(
         '--workers', '-w',
         type=int,
-        help='Number of worker processes (default: CPU cores - 2)',
+        help='Number of worker processes (default: all CPU cores)',
         default=None
     )
     return parser.parse_args()
