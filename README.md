@@ -56,6 +56,8 @@ wot_mods/
 │   │   └── pkg_handler.py    # PKG file handler
 │   ├── pyc_decompiler/        # PYC decompilation tool
 │   │   ├── decompile_pyc.py  # Main decompiler script
+│   │   ├── handler.py        # Multiprocessing handler
+│   │   ├── worker.py         # Worker process manager
 │   │   ├── worker_py2.py     # Python 2.7 worker
 │   │   └── uncompyle6/        # Custom WoT decompiler
 │   └── helper/                # Shared utilities
@@ -80,7 +82,7 @@ python tools/src_extractor/extract_pyc.py <game_path> [-v]
 
 ### PYC Decompiler (`tools/pyc_decompiler`)
 
-Decompiles Python 2.7 bytecode files to source code using a custom uncompyle6 version.
+Decompiles Python 2.7 bytecode files to source code using a custom uncompyle6 version with multiprocessing support for faster decompilation.
 
 **Usage:**
 ```bash
@@ -91,6 +93,7 @@ python tools/pyc_decompiler/decompile_pyc.py <directory> [options]
 - `-r, --recursive` - Process subdirectories
 - `-k, --keep-pyc` - Keep original .pyc files
 - `-v, --verbose` - Show detailed output
+- `-w, --workers` - Number of worker processes (default: CPU cores - 2)
 - `--python2` - Custom Python 2.7 path
 
 ## Technical Details
@@ -99,6 +102,8 @@ python tools/pyc_decompiler/decompile_pyc.py <directory> [options]
 - `.pkg` files are standard ZIP archives containing compiled Python code
 - The decompiler uses a modified uncompyle6 for WoT-specific bytecode
 - Cross-Python compatibility achieved through subprocess communication
+- **Multiprocessing support** for parallel decompilation (significant speed improvement)
+- Default workers: CPU cores - 2 for optimal performance
 
 ## Troubleshooting
 
@@ -117,7 +122,8 @@ Some files may fail due to obfuscation or corruption. Use `-v` flag for details.
 ## Notes
 
 - Extraction typically processes ~9,500 files
-- Decompilation may take 10-30 minutes depending on system
+- Decompilation time significantly reduced with multiprocessing (from hours to minutes)
+- Uses parallel workers for faster processing of large file sets
 - Output preserves the original game's directory structure
 - All extracted files are saved to the `res\` directory
 

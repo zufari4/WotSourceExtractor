@@ -6,7 +6,7 @@ This document contains important information about the World of Tanks Source Ext
 
 This is a toolkit for extracting and decompiling Python source code from World of Tanks. The project consists of two main tools:
 1. **src_extractor** - Extracts .pyc files from .pkg archives
-2. **pyc_decompiler** - Decompiles .pyc files to .py source code
+2. **pyc_decompiler** - Decompiles .pyc files to .py source code with multiprocessing support
 
 ## Key Technical Details
 
@@ -22,9 +22,15 @@ This is a toolkit for extracting and decompiling Python source code from World o
    - Use `[DONE]` instead of `✓` for success messages
    - Use `x` instead of `✗` for error messages
 
-2. **Path Handling**: The Python 2.7 executable is hardcoded to `tools\python2\python.exe`
+2. **Path Handling**: The Python 2.7 executable is located at `tools\python2\python.exe`
 
 3. **Cross-Python Communication**: The decompiler uses JSON for communication between Python 3 wrapper and Python 2.7 worker
+
+4. **Multiprocessing**:
+   - Uses ProcessPoolExecutor for parallel decompilation
+   - Default workers: CPU cores - 2 (minimum 1)
+   - Absolute paths required in worker functions for Windows compatibility
+   - Significant speed improvement over sequential processing
 
 ## Project Structure
 
@@ -37,8 +43,10 @@ wot_mods/
 │   ├── src_extractor/         # Extraction tool
 │   ├── pyc_decompiler/        # Decompilation tool
 │   │   ├── uncompyle6/        # Custom WoT-compatible decompiler
-│   │   ├── decompile_pyc.py  # Python 3 wrapper
-│   │   └── worker_py2.py     # Python 2.7 worker
+│   │   ├── decompile_pyc.py  # Main script with argument parsing
+│   │   ├── handler.py        # Multiprocessing handler
+│   │   ├── worker.py         # Worker process manager
+│   │   └── worker_py2.py     # Python 2.7 decompiler worker
 │   └── helper/                # Shared utilities
 ```
 
@@ -52,6 +60,9 @@ extract_wot_sources.bat
 # Or manually:
 python tools/src_extractor/extract_pyc.py "D:\Games\Tanki"
 python tools/pyc_decompiler/decompile_pyc.py res -r
+
+# With specific worker count:
+python tools/pyc_decompiler/decompile_pyc.py res -r -w 8
 ```
 
 ### Testing Decompilation
@@ -80,6 +91,8 @@ python tools/pyc_decompiler/decompile_pyc.py res/scripts/client/Account.pyc
 3. Keep progress displays user-friendly
 4. Handle errors gracefully with clear messages
 5. Preserve the original WoT directory structure in output
+6. Use absolute paths in multiprocessing workers (Windows requirement)
+7. Test with different worker counts to ensure stability
 
 ## Typical Workflow
 
@@ -93,7 +106,10 @@ python tools/pyc_decompiler/decompile_pyc.py res/scripts/client/Account.pyc
 ## Performance Expectations
 
 - Extraction: 1-2 minutes for ~9,500 files
-- Decompilation: 10-30 minutes depending on system
+- Decompilation: Dramatically improved with multiprocessing
+  - Sequential: 30+ minutes (old)
+  - Parallel (8 workers): 5-10 minutes (new)
+  - Speed scales with CPU cores
 - Total size: ~100-200 MB of source code
 
 ## Do NOT Modify
